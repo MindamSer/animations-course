@@ -123,6 +123,14 @@ static void show_models(Scene &scene)
           const MeshPtr &mesh = model.meshes[j];
           ImGui::Text("%s", mesh->name.c_str());
         }
+
+        const SkeletonData &skeleton = model.skeleton;
+        ImGui::Text("Skeleton Nodes: %zu", skeleton.boneNames.size());
+        for (int i = 0; i < skeleton.boneNames.size(); ++i)
+        {
+          ImGui::Text("%s", (std::string(skeleton.depth[i], ' ') + skeleton.boneNames[i]).c_str());
+        }
+
         ImGui::Unindent(15.0f);
       }
     }

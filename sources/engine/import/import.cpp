@@ -1,3 +1,6 @@
+#include "assimp/quaternion.h"
+#include "assimp/vector3.h"
+#include "glm/matrix.hpp"
 #include "render/mesh.h"
 #include <vector>
 #include <3dmath.h>
@@ -83,6 +86,31 @@ MeshPtr create_mesh(const aiMesh *mesh)
   return create_mesh(mesh->mName.C_Str(), indices, vertices, normals, uv, weights, weightsIndex);
 }
 
+static void load_skeleton(SkeletonData &skeleton, const aiNode *node, int parent, int depth)
+{
+  const int curNodeIndex = skeleton.boneNames.size();
+
+  skeleton.boneNames.push_back(node->mName.C_Str());
+
+  // aiVector3D scaling;
+  // aiQuaternion rotation;
+  // aiVector3D position;
+  // node->mTransformation.Decompose(scaling, rotation, position);
+
+  glm::mat4 localTransform;
+  memcpy(&localTransform, &node->mTransformation,sizeof(localTransform));
+  localTransform = glm::transpose(localTransform);
+  skeleton.boneLocalTransforms.push_back(localTransform);
+
+  skeleton.parents.push_back(parent);
+  skeleton.depth.push_back(depth);
+
+  for (int i = 0; i < node->mNumChildren; ++i)
+  {
+    load_skeleton(skeleton, node->mChildren[i], curNodeIndex, depth + 1);
+  }
+}
+
 ModelAsset load_model(const char *path)
 {
 
@@ -101,6 +129,8 @@ ModelAsset load_model(const char *path)
     engine::error("Filed to read model file \"%s\"", path);
     return model;
   }
+
+  load_skeleton(model.skeleton, scene->mRootNode, -1, 0);
 
   model.meshes.resize(scene->mNumMeshes);
   for (uint32_t i = 0; i < scene->mNumMeshes; i++)

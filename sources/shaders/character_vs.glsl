@@ -5,6 +5,7 @@ struct VsOutput
   vec3 EyespaceNormal;
   vec3 WorldPosition;
   vec2 UV;
+  vec3 BoneColor;
 };
 
 uniform mat4 Transform;
@@ -19,6 +20,19 @@ layout(location = 4) in uvec4 BoneIndex;
 
 out VsOutput vsOutput;
 
+
+vec3 get_random_color(uint x)
+{
+  x += 1u;
+  vec3 col = vec3(1.61803398875);
+  col = fract(col) * vec3(x,x,x);
+  col = fract(col) * vec3(1,x,x);
+  col = fract(col) * vec3(1,1,x);
+  //col = vec3(phi*i, phi*i*i, phi*i*i*i); // has precision issues
+  return fract(col);
+}
+
+
 void main()
 {
 
@@ -29,5 +43,11 @@ void main()
   vsOutput.WorldPosition = VertexPosition;
 
   vsOutput.UV = UV;
+
+  vsOutput.BoneColor =
+    get_random_color(BoneIndex.x) * BoneWeights.x +
+    get_random_color(BoneIndex.y) * BoneWeights.y +
+    get_random_color(BoneIndex.z) * BoneWeights.z +
+    get_random_color(BoneIndex.w) * BoneWeights.w;
 
 }
