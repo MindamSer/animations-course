@@ -4,8 +4,8 @@
 
 struct SkeletonData
 {
-  std::vector<std::string> boneNames;
-  std::vector<mat4> boneLocalTransforms;
+  std::vector<std::string> names;
+  std::vector<mat4> localTransforms;
   std::vector<int> parents;
   std::vector<int> depth;
 };

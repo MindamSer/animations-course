@@ -1,3 +1,4 @@
+#include "glm/ext/quaternion_common.hpp"
 #include "imgui/imgui.h"
 #include "imgui/ImGuizmo.h"
 
@@ -17,21 +18,21 @@ static void show_info()
   ImGui::End();
 }
 
-static void manipulate_character(Character &character, const UserCamera &camera)
+static void manipulate_transform(glm::mat4 &transform, const UserCamera &camera)
 {
   ImGuizmo::BeginFrame();
   const glm::mat4 &projection = camera.projection;
-  const glm::mat4 &transform = camera.transform;
-  mat4 cameraView = inverse(transform);
+  //const glm::mat4 &transform = camera.transform;
+  mat4 cameraView = inverse(camera.transform);
   ImGuiIO &io = ImGui::GetIO();
   ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-  glm::mat4 globNodeTm = character.transform;
+  glm::mat4 globNodeTm = transform;
 
   ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(projection), mCurrentGizmoOperation, mCurrentGizmoMode,
                        glm::value_ptr(globNodeTm));
 
-  character.transform = globNodeTm;
+  transform = globNodeTm;
 }
 
 static void show_characters(Scene &scene)
@@ -40,6 +41,7 @@ static void show_characters(Scene &scene)
   {
     // implement showing characters when only one character can be selected
     static uint32_t selectedCharacter = -1u;
+    static uint32_t selectedNode = -1u;
     for (size_t i = 0; i < scene.characters.size(); i++)
     {
       const Character &character = scene.characters[i];
@@ -57,6 +59,17 @@ static void show_characters(Scene &scene)
         const float INDENT = 15.0f;
         ImGui::Indent(INDENT);
         ImGui::Text("Meshes: %zu", character.meshes.size());
+
+        const SkeletonData &skeleton = character.skeleton.skeletonData;
+        ImGui::Text("Skeleton Nodes: %zu", skeleton.names.size());
+        for (int j = 0; j < skeleton.names.size(); ++j)
+        {
+          if (ImGui::Selectable((std::string(skeleton.depth[j], ' ') + skeleton.names[j]).c_str(), selectedNode == j))
+          {
+            selectedNode = j;
+          }
+        }
+
         ImGui::Unindent(INDENT);
       }
       ImGui::PopID();
@@ -64,7 +77,16 @@ static void show_characters(Scene &scene)
     if (selectedCharacter < scene.characters.size())
     {
       Character &character = scene.characters[selectedCharacter];
-      manipulate_character(character, scene.userCamera);
+      if (selectedNode < character.skeleton.skeletonData.names.size())
+      {
+        glm::mat4 worldTransform = character.transform * character.skeleton.worldTransforms[selectedNode];
+        manipulate_transform(worldTransform, scene.userCamera);
+        character.skeleton.worldTransforms[selectedNode] = inverse(character.transform) * worldTransform;
+      }
+      else
+      {
+        manipulate_transform(character.transform, scene.userCamera);
+      }
     }
   }
   ImGui::End();
@@ -125,10 +147,10 @@ static void show_models(Scene &scene)
         }
 
         const SkeletonData &skeleton = model.skeleton;
-        ImGui::Text("Skeleton Nodes: %zu", skeleton.boneNames.size());
-        for (int i = 0; i < skeleton.boneNames.size(); ++i)
+        ImGui::Text("Skeleton Nodes: %zu", skeleton.names.size());
+        for (int i = 0; i < skeleton.names.size(); ++i)
         {
-          ImGui::Text("%s", (std::string(skeleton.depth[i], ' ') + skeleton.boneNames[i]).c_str());
+          ImGui::Text("%s", (std::string(skeleton.depth[i], ' ') + skeleton.names[i]).c_str());
         }
 
         ImGui::Unindent(15.0f);

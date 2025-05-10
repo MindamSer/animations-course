@@ -88,9 +88,9 @@ MeshPtr create_mesh(const aiMesh *mesh)
 
 static void load_skeleton(SkeletonData &skeleton, const aiNode *node, int parent, int depth)
 {
-  const int curNodeIndex = skeleton.boneNames.size();
+  const int curNodeIndex = skeleton.names.size();
 
-  skeleton.boneNames.push_back(node->mName.C_Str());
+  skeleton.names.push_back(node->mName.C_Str());
 
   // aiVector3D scaling;
   // aiQuaternion rotation;
@@ -100,7 +100,7 @@ static void load_skeleton(SkeletonData &skeleton, const aiNode *node, int parent
   glm::mat4 localTransform;
   memcpy(&localTransform, &node->mTransformation,sizeof(localTransform));
   localTransform = glm::transpose(localTransform);
-  skeleton.boneLocalTransforms.push_back(localTransform);
+  skeleton.localTransforms.push_back(localTransform);
 
   skeleton.parents.push_back(parent);
   skeleton.depth.push_back(depth);

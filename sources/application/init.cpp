@@ -1,3 +1,4 @@
+#include "character.h"
 #include "scene.h"
 
 
@@ -49,7 +50,8 @@ void application_init(Scene &scene)
     "MotusMan_v55",
     glm::identity<glm::mat4>(),
     motusMan.meshes,
-    std::move(material)
+    std::move(material),
+    SkeletonRuntime(motusMan.skeleton)
   });
 
   auto whiteMaterial = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
@@ -61,7 +63,8 @@ void application_init(Scene &scene)
    "Ruby",
     glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f)),
     ruby.meshes,
-    std::move(whiteMaterial)
+    std::move(whiteMaterial),
+    SkeletonRuntime(ruby.skeleton)
   });
 
   scene.models.push_back(std::move(motusMan));
