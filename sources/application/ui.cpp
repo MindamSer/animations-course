@@ -1,8 +1,13 @@
 #include "glm/ext/quaternion_common.hpp"
+#include "glm/fwd.hpp"
 #include "imgui/imgui.h"
 #include "imgui/ImGuizmo.h"
 
 #include "scene.h"
+#include "user_camera.h"
+
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui/imgui_internal.h"
 
 static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
 static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
@@ -16,6 +21,15 @@ static void show_info()
     ImGui::Text("Left Mouse Button and Wheel - controll camera");
   }
   ImGui::End();
+}
+
+static glm::vec2 world_to_screen(const UserCamera &camera, glm::vec3 world_position)
+{
+  glm::vec4 clipSpace = camera.projection * inverse(camera.transform) * glm::vec4(world_position, 1.f);
+  glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+  glm::vec2 screen = (glm::vec2(ndc) + 1.f) / 2.f;
+  ImGuiIO &io = ImGui::GetIO();
+  return glm::vec2(screen.x * io.DisplaySize.x, io.DisplaySize.y - screen.y * io.DisplaySize.y);
 }
 
 static void manipulate_transform(glm::mat4 &transform, const UserCamera &camera)
@@ -86,6 +100,32 @@ static void show_characters(Scene &scene)
       else
       {
         manipulate_transform(character.transform, scene.userCamera);
+      }
+
+      ImDrawList *drawList = ImGui::GetOverlayDrawList();
+      ImColor skeletonColor(255,127,255);
+      const float arrowSize = 10.f;
+      for (size_t i = 1; i < character.skeleton.worldTransforms.size(); ++i)
+      {
+        const int &parent = character.skeleton.skeletonData.parents[i];
+        std::vector<glm::mat4> &transforms = character.skeleton.worldTransforms;
+
+        const glm::mat4 fromTransform = character.transform * transforms[parent];
+        const glm::mat4 toTransform = character.transform * transforms[i];
+        const glm::vec2 fromScreen = world_to_screen(scene.userCamera, glm::vec3(fromTransform[3]));
+        const glm::vec2 toScreen = world_to_screen(scene.userCamera, glm::vec3(toTransform[3]));
+
+        drawList->AddLine(fromScreen, toScreen, skeletonColor, 3.f);
+
+        ImVec2 dir(toScreen - fromScreen);
+        float d = sqrtf(ImLengthSqr(dir));
+        dir /= d;
+        ImVec2 ortogonalDir(dir.y, -dir.x);
+
+        drawList->AddTriangleFilled(
+          toScreen,
+          toScreen - dir * arrowSize + ortogonalDir * 0.5f * arrowSize,
+          toScreen - dir * arrowSize - ortogonalDir * 0.5f * arrowSize, skeletonColor);
       }
     }
   }
