@@ -1,5 +1,7 @@
 
+#include "api.h"
 #include "scene.h"
+#include <string>
 
 void render_character(const Character &character, const mat4 &cameraProjView, vec3 cameraPosition, const DirectionLight &light)
 {
@@ -14,15 +16,35 @@ void render_character(const Character &character, const mat4 &cameraProjView, ve
   shader.set_vec3("AmbientLight", light.ambient);
   shader.set_vec3("SunLight", light.lightColor);
 
-  std::vector<mat4> skinningMatrices(character.skeleton.worldTransforms.size(), mat4(1.f));
-  for(auto &matrix : skinningMatrices)
-  {
-    matrix = character.transform * matrix;
-  }
-  shader.set_mat4x4("SkinningMatrices", skinningMatrices.data(), skinningMatrices.size());
+  const std::vector<mat4> &bindPose = character.skeleton.worldTransforms;
+  std::vector<mat4> skinningMatrices;
 
   for (const MeshPtr &mesh : character.meshes)
+  {
+    skinningMatrices.resize(mesh->inversedBindPose.size());
+
+    for(size_t i = 0; i < mesh->inversedBindPose.size(); ++i)
+    {
+      const std::string &name = mesh->boneNames[i];
+      auto it = character.skeleton.nodesMap.find(name);
+      if (it == character.skeleton.nodesMap.end())
+      {
+        engine::error("Bone \"%s\" from mesh \"%s\" not found in skeleton", name.c_str(), mesh->name.c_str());
+        skinningMatrices[i] = mat4(1.f);
+      }
+      else
+      {
+        skinningMatrices[i] = bindPose[it->second] * mesh->inversedBindPose[i];
+      }
+    }
+
+    for(auto &matrix : skinningMatrices)
+    {
+      matrix = character.transform * matrix;
+    }
+    shader.set_mat4x4("SkinningMatrices", skinningMatrices.data(), skinningMatrices.size());
     render(mesh);
+  }
 }
 
 void application_render(Scene &scene)

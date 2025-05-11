@@ -13,7 +13,7 @@ struct Mesh
   const uint32_t vertexArrayBufferObject;
   const int numIndices;
 
-  std::vector<mat4> bindPose;
+  std::vector<mat4> inversedBindPose;
   std::vector<std::string> boneNames;
   std::map<std::string, int> bonesMap;
 
@@ -23,11 +23,11 @@ struct Mesh
     numIndices(numIndices)
     {}
 
-  Mesh(const char *name, uint32_t vertexArrayBufferObject, int numIndices, std::vector<mat4> &&_bindPose, std::vector<std::string> &&_boneNames, std::map<std::string, int> &&_bonesMap) :
+  Mesh(const char *name, uint32_t vertexArrayBufferObject, int numIndices, std::vector<mat4> &&_inversedBindPose, std::vector<std::string> &&_boneNames, std::map<std::string, int> &&_bonesMap) :
     name(name),
     vertexArrayBufferObject(vertexArrayBufferObject),
     numIndices(numIndices),
-    bindPose(std::move(_bindPose)),
+    inversedBindPose(std::move(_inversedBindPose)),
     boneNames(std::move(_boneNames)),
     bonesMap(std::move(_bonesMap))
     {}
@@ -43,7 +43,7 @@ MeshPtr create_mesh(
     std::span<const vec2> uv,
     std::span<const vec4> weights,
     std::span<const uvec4> weightsIndex,
-    std::vector<mat4> &&bindPose,
+    std::vector<mat4> &&inversedBindPose,
     std::vector<std::string> &&boneNames,
     std::map<std::string, int> &&bonesMap);
 

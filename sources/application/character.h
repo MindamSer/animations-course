@@ -4,11 +4,13 @@
 #include "engine/render/mesh.h"
 #include "glm/fwd.hpp"
 #include "import/model.h"
+#include <map>
 
 struct SkeletonRuntime
 {
   const SkeletonData skeletonData;
   std::vector<mat4> worldTransforms;
+  std::map<std::string, int> nodesMap;
 
   SkeletonRuntime(const SkeletonData &sd) : skeletonData(sd)
   {
@@ -25,6 +27,11 @@ struct SkeletonRuntime
       {
         worldTransforms[i] = skeletonData.localTransforms[i];
       }
+    }
+
+    for (size_t i = 0; i < skeletonData.names.size(); ++i)
+    {
+      nodesMap[skeletonData.names[i]] = i;
     }
   }
 };

@@ -51,12 +51,12 @@ MeshPtr create_mesh(
     std::span<const vec2> uv,
     std::span<const vec4> weights,
     std::span<const uvec4> weightsIndex,
-    std::vector<mat4> &&bindPose,
+    std::vector<mat4> &&inversedBindPose,
     std::vector<std::string> &&boneNames,
     std::map<std::string, int> &&bonesMap)
 {
   uint32_t vertexArrayBufferObject = create_vertex_array_buffer(indices, vertices, normals, uv, weights, weightsIndex);
-  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size(), std::move(bindPose), std::move(boneNames), std::move(bonesMap));
+  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size(), std::move(inversedBindPose), std::move(boneNames), std::move(bonesMap));
 }
 
 MeshPtr create_mesh(
