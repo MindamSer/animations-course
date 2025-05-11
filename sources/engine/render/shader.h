@@ -53,9 +53,18 @@ public:
 	{
 		set_mat4x4(glGetUniformLocation(program, name), matrix, transpose);
 	}
+	void set_mat4x4(const char *name, const mat4 *matrix,  size_t size, bool transpose = false) const
+	{
+		set_mat4x4(glGetUniformLocation(program, name), matrix, size, transpose);
+	}
+
 	void set_mat4x4(int uniform_location, const mat4 matrix, bool transpose = false) const
 	{
 		glUniformMatrix4fv(uniform_location, 1, transpose, glm::value_ptr(matrix));
+	}
+	void set_mat4x4(int uniform_location, const mat4 *matrix, size_t size, bool transpose = false) const
+	{
+		glUniformMatrix4fv(uniform_location, size, transpose, glm::value_ptr(*matrix));
 	}
 
 	void set_float(const char *name, const float &v) const

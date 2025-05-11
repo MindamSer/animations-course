@@ -30,7 +30,7 @@ static void init_channel(int channel_index, std::span<const T> channel)
 }
 
 template <typename... Channel> // Channel is vector<vec3>, vector<vec2> etc
-static MeshPtr create_mesh_impl(const char *name, std::span<const uint32_t> indices, Channel &&...channels)
+static uint32_t create_vertex_array_buffer(std::span<const uint32_t> indices, Channel &&...channels)
 {
   uint32_t vertexArrayBufferObject;
   glGenVertexArrays(1, &vertexArrayBufferObject);
@@ -40,7 +40,23 @@ static MeshPtr create_mesh_impl(const char *name, std::span<const uint32_t> indi
   (init_channel(channelIdx++, channels), ...);
 
   create_indices(indices);
-  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size());
+  return vertexArrayBufferObject;
+}
+
+MeshPtr create_mesh(
+    const char *name,
+    std::span<const uint32_t> indices,
+    std::span<const vec3> vertices,
+    std::span<const vec3> normals,
+    std::span<const vec2> uv,
+    std::span<const vec4> weights,
+    std::span<const uvec4> weightsIndex,
+    std::vector<mat4> &&bindPose,
+    std::vector<std::string> &&boneNames,
+    std::map<std::string, int> &&bonesMap)
+{
+  uint32_t vertexArrayBufferObject = create_vertex_array_buffer(indices, vertices, normals, uv, weights, weightsIndex);
+  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size(), std::move(bindPose), std::move(boneNames), std::move(bonesMap));
 }
 
 MeshPtr create_mesh(
@@ -52,7 +68,8 @@ MeshPtr create_mesh(
     std::span<const vec4> weights,
     std::span<const uvec4> weightsIndex)
 {
-  return create_mesh_impl(name, indices, vertices, normals, uv, weights, weightsIndex);
+  uint32_t vertexArrayBufferObject = create_vertex_array_buffer(indices, vertices, normals, uv, weights, weightsIndex);
+  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size());
 }
 
 MeshPtr create_mesh(
@@ -62,7 +79,8 @@ MeshPtr create_mesh(
     std::span<const vec3> normals,
     std::span<const vec2> uv)
 {
-  return create_mesh_impl(name, indices, vertices, normals, uv);
+  uint32_t vertexArrayBufferObject = create_vertex_array_buffer(indices, vertices, normals, uv);
+  return std::make_shared<Mesh>(name, vertexArrayBufferObject, indices.size());
 }
 
 

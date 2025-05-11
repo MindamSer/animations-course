@@ -21,6 +21,10 @@ MeshPtr create_mesh(const aiMesh *mesh)
   std::vector<vec4> weights;
   std::vector<uvec4> weightsIndex;
 
+  std::vector<mat4> bindPose;
+  std::vector<std::string> boneNames;
+  std::map<std::string, int> bonesMap;
+
   int numVert = mesh->mNumVertices;
   int numFaces = mesh->mNumFaces;
 
@@ -65,7 +69,14 @@ MeshPtr create_mesh(const aiMesh *mesh)
     for (int i = 0; i < numBones; i++)
     {
       const aiBone *bone = mesh->mBones[i];
-      // bonesMap[std::string(bone->mName.C_Str())] = i;
+
+      glm::mat4 mOffsetMatrix;
+      memcpy(&mOffsetMatrix, &bone->mOffsetMatrix,sizeof(mOffsetMatrix));
+      mOffsetMatrix = glm::transpose(mOffsetMatrix);
+
+      bindPose.push_back(mOffsetMatrix);
+      boneNames.push_back(bone->mName.C_Str());
+      bonesMap[boneNames.back()] = i;
 
       for (unsigned j = 0; j < bone->mNumWeights; j++)
       {
@@ -83,7 +94,7 @@ MeshPtr create_mesh(const aiMesh *mesh)
       weights[i] *= 1.f / s;
     }
   }
-  return create_mesh(mesh->mName.C_Str(), indices, vertices, normals, uv, weights, weightsIndex);
+  return create_mesh(mesh->mName.C_Str(), indices, vertices, normals, uv, weights, weightsIndex, std::move(bindPose), std::move(boneNames), std::move(bonesMap));
 }
 
 static void load_skeleton(SkeletonData &skeleton, const aiNode *node, int parent, int depth)

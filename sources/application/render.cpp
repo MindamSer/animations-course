@@ -8,12 +8,18 @@ void render_character(const Character &character, const mat4 &cameraProjView, ve
 
   shader.use();
   material.bind_uniforms_to_shader();
-  shader.set_mat4x4("Transform", character.transform);
   shader.set_mat4x4("ViewProjection", cameraProjView);
   shader.set_vec3("CameraPosition", cameraPosition);
   shader.set_vec3("LightDirection", glm::normalize(light.lightDirection));
   shader.set_vec3("AmbientLight", light.ambient);
   shader.set_vec3("SunLight", light.lightColor);
+
+  std::vector<mat4> skinningMatrices(character.skeleton.worldTransforms.size(), mat4(1.f));
+  for(auto &matrix : skinningMatrices)
+  {
+    matrix = character.transform * matrix;
+  }
+  shader.set_mat4x4("SkinningMatrices", skinningMatrices.data(), skinningMatrices.size());
 
   for (const MeshPtr &mesh : character.meshes)
     render(mesh);
