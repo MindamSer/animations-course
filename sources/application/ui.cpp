@@ -9,6 +9,8 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui/imgui_internal.h"
 
+#include <format>
+
 static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
 static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
 
@@ -175,22 +177,36 @@ static void show_models(Scene &scene)
       {
         selectedModel = i;
       }
+
       if (selectedModel == i)
       {
         ImGui::Indent(15.0f);
-        ImGui::Text("Path: %s", model.path.c_str());
-        ImGui::Text("Meshes: %zu", model.meshes.size());
-        for (size_t j = 0; j < model.meshes.size(); j++)
-        {
-          const MeshPtr &mesh = model.meshes[j];
-          ImGui::Text("%s", mesh->name.c_str());
-        }
 
-        const SkeletonData &skeleton = model.skeleton;
-        ImGui::Text("Skeleton Nodes: %zu", skeleton.names.size());
-        for (int i = 0; i < skeleton.names.size(); ++i)
+        ImGui::Text("Path: %s", model.path.c_str());
+
+        if(ImGui::TreeNode(std::format("all_meshes_%d", i).c_str(), "Meshes: %zu", model.meshes.size()))
         {
-          ImGui::Text("%s", (std::string(skeleton.depth[i], ' ') + skeleton.names[i]).c_str());
+          for (size_t j = 0; j < model.meshes.size(); j++)
+          {
+            const MeshPtr &mesh = model.meshes[j];
+
+            ImGui::PushID(j);
+            if(ImGui::TreeNode(std::format("cur_mesh_%d", j).c_str(), "%s", mesh->name.c_str()))
+            {
+              ImGui::Text("Bones :%zu", mesh->boneNames.size());
+              int boneIndex = 0;
+              for (const std::string &name : mesh->boneNames)
+              {
+                ImGui::Text("(%d) %s", boneIndex, name.c_str());
+                ++boneIndex;
+              }
+
+              ImGui::TreePop();
+            }
+            ImGui::PopID();
+          }
+
+          ImGui::TreePop();
         }
 
         ImGui::Unindent(15.0f);
