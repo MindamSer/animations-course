@@ -12,8 +12,6 @@ project(${EXE_NAME})
 set(SRC_ROOT ${CMAKE_SOURCE_DIR})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_CXX_STANDARD 20)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -73,6 +71,21 @@ set(TMP_SOURCES )
 add_folder(application)
 add_folder(engine)
 add_folder(3rd_party/imgui)
+
+SET(ozz_build_tools OFF CACHE BOOL "" FORCE)
+SET(ozz_build_fbx OFF CACHE BOOL "" FORCE)
+SET(ozz_build_gltf OFF CACHE BOOL "" FORCE)
+SET(ozz_build_samples OFF CACHE BOOL "" FORCE)
+SET(ozz_build_howtos OFF CACHE BOOL "" FORCE)
+SET(ozz_build_tests OFF CACHE BOOL "" FORCE)
+SET(ozz_build_postfix OFF CACHE BOOL "" FORCE)
+add_subdirectory(3rd_party/ozz)
+include_directories(3rd_party/ozz/include)
+
+set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS}
+  ozz_geometry
+  ozz_animation_offline
+  ozz_options)
 
 set(EXE_SOURCES ${EXE_SOURCES} ${SRC_ROOT}/3rd_party/glad/glad.c)
 

@@ -2,12 +2,20 @@
 #include "render/mesh.h"
 #include <vector>
 
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/runtime/animation.h>
+
+using SkeletonPtr = std::shared_ptr<ozz::animation::Skeleton>;
+using AnimationPtr = std::shared_ptr<ozz::animation::Animation>;
+
+
 struct SkeletonData
 {
   std::vector<std::string> names;
   std::vector<mat4> localTransforms;
   std::vector<int> parents;
   std::vector<int> depth;
+  SkeletonPtr ozzSkeleton;
 };
 
 struct ModelAsset
@@ -15,6 +23,7 @@ struct ModelAsset
   std::string path;
   std::vector<MeshPtr> meshes;
   SkeletonData skeleton;
+  std::vector<AnimationPtr> animations;
 };
 
 ModelAsset load_model(const char *path);
