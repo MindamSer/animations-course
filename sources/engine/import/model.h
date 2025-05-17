@@ -15,6 +15,7 @@ struct SkeletonData
   std::vector<mat4> localTransforms;
   std::vector<int> parents;
   std::vector<int> depth;
+  std::map<std::string, int> nodesMap;
   SkeletonPtr ozzSkeleton;
 };
 

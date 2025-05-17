@@ -76,7 +76,7 @@ static void show_characters(Scene &scene)
         ImGui::Indent(INDENT);
         ImGui::Text("Meshes: %zu", character.meshes.size());
 
-        const SkeletonData &skeleton = character.skeleton.skeletonData;
+        const SkeletonData &skeleton = character.skeleton;
         ImGui::Text("Skeleton Nodes: %zu", skeleton.names.size());
         for (int j = 0; j < skeleton.names.size(); ++j)
         {
@@ -93,11 +93,12 @@ static void show_characters(Scene &scene)
     if (selectedCharacter < scene.characters.size())
     {
       Character &character = scene.characters[selectedCharacter];
-      if (selectedNode < character.skeleton.skeletonData.names.size())
+      if (selectedNode < character.skeleton.names.size())
       {
-        glm::mat4 worldTransform = character.transform * character.skeleton.worldTransforms[selectedNode];
+        glm::mat4 &worldTransform = reinterpret_cast<glm::mat4 &>(character.animationContext.worldTransforms[selectedNode]);
+        glm::mat4 transform = character.transform * worldTransform;
         manipulate_transform(worldTransform, scene.userCamera);
-        character.skeleton.worldTransforms[selectedNode] = inverse(character.transform) * worldTransform;
+        worldTransform = inverse(character.transform) * transform;
       }
       else
       {
@@ -107,10 +108,10 @@ static void show_characters(Scene &scene)
       ImDrawList *drawList = ImGui::GetOverlayDrawList();
       ImColor skeletonColor(255,127,255);
       const float arrowSize = 10.f;
-      for (size_t i = 1; i < character.skeleton.worldTransforms.size(); ++i)
+      for (size_t i = 1; i < character.skeleton.names.size(); ++i)
       {
-        const int &parent = character.skeleton.skeletonData.parents[i];
-        std::vector<glm::mat4> &transforms = character.skeleton.worldTransforms;
+        const int &parent = character.skeleton.parents[i];
+        std::vector<glm::mat4> &transforms = reinterpret_cast<std::vector<glm::mat4> &>(character.animationContext.worldTransforms);
 
         const glm::mat4 fromTransform = character.transform * transforms[parent];
         const glm::mat4 toTransform = character.transform * transforms[i];

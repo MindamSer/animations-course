@@ -144,6 +144,11 @@ static void load_skeleton(Joint &joint, SkeletonData &skeleton, const aiNode *no
   {
     load_skeleton(joint.children[i], skeleton, node->mChildren[i], curNodeIndex, depth + 1);
   }
+
+  for (size_t i = 0; i < skeleton.names.size(); ++i)
+  {
+    skeleton.nodesMap[skeleton.names[i]] = i;
+  }
 }
 
 AnimationPtr create_animation(const aiAnimation *animation, const SkeletonPtr &skeleton)

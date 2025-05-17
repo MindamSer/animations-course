@@ -58,7 +58,7 @@ void application_init(Scene &scene)
     glm::identity<glm::mat4>(),
     motusMan.meshes,
     std::move(material),
-    SkeletonRuntime(motusManWalk.skeleton),
+    motusManWalk.skeleton,
     std::move(motusContext)
     });
   }
@@ -79,7 +79,7 @@ void application_init(Scene &scene)
       glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f)),
       ruby.meshes,
       std::move(whiteMaterial),
-      SkeletonRuntime(ruby.skeleton),
+      ruby.skeleton,
       std::move(rubyContext)
     });
   }
