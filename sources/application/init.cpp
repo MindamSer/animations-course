@@ -42,6 +42,7 @@ void application_init(Scene &scene)
 
   ModelAsset motusMan = load_model("resources/MotusMan_v55/MotusMan_v55.fbx");
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
+  ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
 
 
   auto material = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
@@ -49,15 +50,15 @@ void application_init(Scene &scene)
 
   {
     AnimationContext motusContext;
-    motusContext.setup(motusMan.skeleton.ozzSkeleton);
-    motusContext.curentAnimation = nullptr;
+    motusContext.setup(motusManWalk.skeleton.ozzSkeleton);
+    motusContext.curentAnimation = motusManWalk.animations[0];
 
     scene.characters.emplace_back(Character{
     "MotusMan_v55",
     glm::identity<glm::mat4>(),
     motusMan.meshes,
     std::move(material),
-    SkeletonRuntime(motusMan.skeleton),
+    SkeletonRuntime(motusManWalk.skeleton),
     std::move(motusContext)
     });
   }
@@ -85,6 +86,7 @@ void application_init(Scene &scene)
 
   scene.models.push_back(std::move(motusMan));
   scene.models.push_back(std::move(ruby));
+  scene.models.push_back(std::move(motusManWalk));
 
   std::fflush(stdout);
 }
