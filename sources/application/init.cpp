@@ -1,4 +1,5 @@
 #include "character.h"
+#include "import/model.h"
 #include "scene.h"
 
 
@@ -39,33 +40,48 @@ void application_init(Scene &scene)
   engine::onKeyboardEvent += [](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_F5 && e.state == SDL_RELEASED) recompile_all_shaders(); };
 
 
-  auto material = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
-
-  material->set_property("mainTex", create_texture2d("resources/MotusMan_v55/MCG_diff.jpg"));
-
   ModelAsset motusMan = load_model("resources/MotusMan_v55/MotusMan_v55.fbx");
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
 
-  scene.characters.emplace_back(Character{
+
+  auto material = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
+  material->set_property("mainTex", create_texture2d("resources/MotusMan_v55/MCG_diff.jpg"));
+
+  {
+    AnimationContext motusContext;
+    motusContext.setup(motusMan.skeleton.ozzSkeleton);
+    motusContext.curentAnimation = nullptr;
+
+    scene.characters.emplace_back(Character{
     "MotusMan_v55",
     glm::identity<glm::mat4>(),
     motusMan.meshes,
     std::move(material),
-    SkeletonRuntime(motusMan.skeleton)
-  });
+    SkeletonRuntime(motusMan.skeleton),
+    std::move(motusContext)
+    });
+  }
+
 
   auto whiteMaterial = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
 
   const uint8_t whiteColor[4] = {255, 255, 255, 255};
   whiteMaterial->set_property("mainTex", create_texture2d(whiteColor, 1, 1, 4));
 
-  scene.characters.emplace_back(Character{
-   "Ruby",
-    glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f)),
-    ruby.meshes,
-    std::move(whiteMaterial),
-    SkeletonRuntime(ruby.skeleton)
-  });
+  {
+    AnimationContext rubyContext;
+    rubyContext.setup(ruby.skeleton.ozzSkeleton);
+    rubyContext.curentAnimation = ruby.animations[0];
+
+    scene.characters.emplace_back(Character{
+      "Ruby",
+      glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f)),
+      ruby.meshes,
+      std::move(whiteMaterial),
+      SkeletonRuntime(ruby.skeleton),
+      std::move(rubyContext)
+    });
+  }
 
   scene.models.push_back(std::move(motusMan));
   scene.models.push_back(std::move(ruby));

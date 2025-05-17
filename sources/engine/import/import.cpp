@@ -5,9 +5,11 @@
 #include "ozz/animation/offline/animation_builder.h"
 #include "ozz/animation/offline/raw_animation.h"
 #include "ozz/animation/runtime/animation.h"
+#include "ozz/base/maths/soa_transform.h"
 #include "ozz/base/memory/unique_ptr.h"
 #include "render/mesh.h"
 #include <memory>
+#include <string_view>
 #include <vector>
 #include <3dmath.h>
 #include <assimp/scene.h>
@@ -21,6 +23,7 @@
 #include <ozz/animation/offline/raw_skeleton.h>
 #include <ozz/animation/offline/skeleton_builder.h>
 #include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/runtime/skeleton_utils.h>
 
 #include "import/model.h"
 
@@ -149,50 +152,81 @@ AnimationPtr create_animation(const aiAnimation *animation, const SkeletonPtr &s
 
   rawAnimation.name = animation->mName.C_Str();
   rawAnimation.duration = animation->mDuration / animation->mTicksPerSecond;
-  rawAnimation.tracks.resize(animation->mNumChannels);
+  rawAnimation.tracks.resize(skeleton->num_joints());
 
-  for (size_t i = 0; i < animation->mNumChannels; ++i)
+  for (size_t k = 0; k < skeleton->num_joints(); ++k)
   {
-    const aiNodeAnim &channel = *animation->mChannels[i];
-    ozz::animation::offline::RawAnimation::JointTrack &track = rawAnimation.tracks[i];
-
-    // fill translations
-    track.translations.resize(channel.mNumPositionKeys);
-    for (size_t j = 0; j < channel.mNumPositionKeys; ++j)
+    std::string_view jointName = skeleton->joint_names()[k];
+    int channelIdx = -1;
+    for (size_t i = 0; i < animation->mNumChannels; ++i)
     {
-      const aiVectorKey &key = channel.mPositionKeys[j];
-      const float mTime = key.mTime / animation->mTicksPerSecond;
-      track.translations[j].time = mTime;
-      track.translations[j].value = ozz::math::Float3(key.mValue.x, key.mValue.y, key.mValue.z);
-      assert (mTime >= 0.f && mTime <= rawAnimation.duration);
-      if (j > 0)
-        assert(key.mTime >= channel.mPositionKeys[j-1].mTime);
+      const aiNodeAnim &channel = *animation->mChannels[i];
+      if (jointName == channel.mNodeName.C_Str())
+      {
+        channelIdx = i;
+        break;
+      }
     }
 
-    // fill rotations
-    track.rotations.resize(channel.mNumRotationKeys);
-    for (size_t j = 0; j < channel.mNumRotationKeys; ++j)
-    {
-      const aiQuatKey &key = channel.mRotationKeys[j];
-      const float mTime = key.mTime / animation->mTicksPerSecond;
-      track.rotations[j].time = mTime;
-      track.rotations[j].value = ozz::math::Quaternion(key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
-      assert (mTime >= 0.f && mTime <= rawAnimation.duration);
-      if (j > 0)
-        assert(key.mTime >= channel.mRotationKeys[j-1].mTime);
-    }
+    ozz::animation::offline::RawAnimation::JointTrack &track = rawAnimation.tracks[k];
 
-    // fill translations
-    track.scales.resize(channel.mNumScalingKeys);
-    for (size_t j = 0; j < channel.mNumScalingKeys; ++j)
+    if (channelIdx == -1)
     {
-      const aiVectorKey &key = channel.mScalingKeys[j];
-      const float mTime = key.mTime / animation->mTicksPerSecond;
-      track.scales[j].time = mTime;
-      track.scales[j].value = ozz::math::Float3(key.mValue.x, key.mValue.y, key.mValue.z);
-      assert (mTime >= 0.f && mTime <= rawAnimation.duration);
-      if (j > 0)
-        assert(key.mTime >= channel.mScalingKeys[j-1].mTime);
+      ozz::math::Transform transform = ozz::animation::GetJointLocalRestPose(*skeleton, k);
+
+      track.translations.resize(1);
+      track.translations[0].time = 0.f;
+      track.translations[0].value = transform.translation;
+
+      track.rotations.resize(1);
+      track.rotations[0].time = 0.f;
+      track.rotations[0].value = transform.rotation;
+
+      track.scales.resize(1);
+      track.scales[0].time = 0.f;
+      track.scales[0].value = transform.scale;
+    }
+    else
+    {
+      const aiNodeAnim &channel = *animation->mChannels[channelIdx];
+      // fill translations
+      track.translations.resize(channel.mNumPositionKeys);
+      for (size_t j = 0; j < channel.mNumPositionKeys; ++j)
+      {
+        const aiVectorKey &key = channel.mPositionKeys[j];
+        const float mTime = key.mTime / animation->mTicksPerSecond;
+        track.translations[j].time = mTime;
+        track.translations[j].value = ozz::math::Float3(key.mValue.x, key.mValue.y, key.mValue.z);
+        assert (mTime >= 0.f && mTime <= rawAnimation.duration);
+        if (j > 0)
+          assert(key.mTime >= channel.mPositionKeys[j-1].mTime);
+      }
+
+      // fill rotations
+      track.rotations.resize(channel.mNumRotationKeys);
+      for (size_t j = 0; j < channel.mNumRotationKeys; ++j)
+      {
+        const aiQuatKey &key = channel.mRotationKeys[j];
+        const float mTime = key.mTime / animation->mTicksPerSecond;
+        track.rotations[j].time = mTime;
+        track.rotations[j].value = ozz::math::Quaternion(key.mValue.x, key.mValue.y, key.mValue.z, key.mValue.w);
+        assert (mTime >= 0.f && mTime <= rawAnimation.duration);
+        if (j > 0)
+          assert(key.mTime >= channel.mRotationKeys[j-1].mTime);
+      }
+
+      // fill translations
+      track.scales.resize(channel.mNumScalingKeys);
+      for (size_t j = 0; j < channel.mNumScalingKeys; ++j)
+      {
+        const aiVectorKey &key = channel.mScalingKeys[j];
+        const float mTime = key.mTime / animation->mTicksPerSecond;
+        track.scales[j].time = mTime;
+        track.scales[j].value = ozz::math::Float3(key.mValue.x, key.mValue.y, key.mValue.z);
+        assert (mTime >= 0.f && mTime <= rawAnimation.duration);
+        if (j > 0)
+          assert(key.mTime >= channel.mScalingKeys[j-1].mTime);
+      }
     }
   }
 

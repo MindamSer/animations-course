@@ -1,5 +1,6 @@
 
 #include "api.h"
+#include "glm/fwd.hpp"
 #include "scene.h"
 #include <string>
 
@@ -16,7 +17,11 @@ void render_character(const Character &character, const mat4 &cameraProjView, ve
   shader.set_vec3("AmbientLight", light.ambient);
   shader.set_vec3("SunLight", light.lightColor);
 
-  const std::vector<mat4> &bindPose = character.skeleton.worldTransforms;
+
+  std::span<const mat4x4> bindPose = {
+    (const glm::mat4x4 *)character.animationContext.worldTransforms.data(),
+    character.animationContext.worldTransforms.size()
+  };
   std::vector<mat4> skinningMatrices;
 
   for (const MeshPtr &mesh : character.meshes)
