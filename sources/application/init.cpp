@@ -5,6 +5,7 @@
 #include "scene.h"
 #include <memory>
 #include "blend_space_1d.h"
+#include "blend_space_2d.h"
 #include "single_animation.h"
 
 
@@ -46,9 +47,21 @@ void application_init(Scene &scene)
 
 
   ModelAsset motusManIdle = load_model("resources/Animations/IPC/MOB1_Stand_Relaxed_Idle_IPC.fbx");
-  ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
-  ModelAsset motusManJog = load_model("resources/Animations/IPC/MOB1_Jog_F_Loop_IPC.fbx");
-  ModelAsset motusManRun = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
+
+  ModelAsset motusManWalkF = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
+  ModelAsset motusManJogF = load_model("resources/Animations/IPC/MOB1_Jog_F_Loop_IPC.fbx");
+  ModelAsset motusManRunF = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
+
+  ModelAsset motusManWalkB = load_model("resources/Animations/IPC/MOB1_Walk_B_Loop_IPC.fbx");
+  ModelAsset motusManJogB = load_model("resources/Animations/IPC/MOB1_Jog_B_Loop_IPC.fbx");
+
+  ModelAsset motusManWalkL = load_model("resources/Animations/IPC/MOB1_Walk_L_Loop_IPC.fbx");
+  ModelAsset motusManJogL = load_model("resources/Animations/IPC/MOB1_Jog_L_Loop_IPC.fbx");
+  ModelAsset motusManRunL = load_model("resources/Animations/IPC/MOB1_Run_L_Loop_IPC.fbx");
+
+  ModelAsset motusManWalkR = load_model("resources/Animations/IPC/MOB1_Walk_R_Loop_IPC.fbx");
+  ModelAsset motusManJogR = load_model("resources/Animations/IPC/MOB1_Jog_R_Loop_IPC.fbx");
+  ModelAsset motusManRunR = load_model("resources/Animations/IPC/MOB1_Run_R_Loop_IPC.fbx");
 
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
 
@@ -67,14 +80,26 @@ void application_init(Scene &scene)
     motusCharacter.material = std::move(material);
     motusCharacter.skeleton = motusManIdle.skeleton;
     motusCharacter.animationContext = std::move(motusContext);
-    motusCharacter.controllers.push_back(std::make_shared<BlendSpace1D>(
-      std::vector<AnimationNode1D>{
-        {motusManIdle.animations[0], 0.f},
-        {motusManWalk.animations[0], 1.f},
-        {motusManJog.animations[0], 2.f},
-        {motusManRun.animations[0], 3.f}
-      }
-    ));
+
+    std::vector<AnimationNode2D> nodes = {
+      {motusManIdle.animations[0], {0.f, 0.f}},
+
+      {motusManWalkF.animations[0], {1.f, 0.f}},
+      {motusManJogF.animations[0], {2.f, 0.f}},
+      {motusManRunF.animations[0], {3.f, 0.f}},
+
+      {motusManWalkB.animations[0], {-1.f, 0.f}},
+      {motusManJogB.animations[0], {-2.f, 0.f}},
+
+      {motusManWalkL.animations[0], {0.f, 1.f}},
+      {motusManJogL.animations[0], {0.f, 2.f}},
+      {motusManRunL.animations[0], {0.f, 3.f}},
+
+      {motusManWalkR.animations[0], {0.f, -1.f}},
+      {motusManJogR.animations[0], {0.f, -2.f}},
+      {motusManRunR.animations[0], {0.f, -3.f}}
+    };
+    motusCharacter.controllers.push_back(std::make_shared<BlendSpace2D>(nodes));
   }
 
 
@@ -97,20 +122,25 @@ void application_init(Scene &scene)
     rubyCharacter.controllers.push_back(std::make_shared<SingleAnimation>(ruby.animations[0]));
   }
 
-  scene.models.push_back(std::move(motusManIdle));
-  scene.models.push_back(std::move(motusManWalk));
-  scene.models.push_back(std::move(motusManJog));
-  scene.models.push_back(std::move(motusManRun));
   scene.models.push_back(std::move(ruby));
 
+  scene.models.push_back(std::move(motusManIdle));
 
-  // scene.controller = {
-  //   &scene.characters[0],
-  //   &scene.models[0]
-  // };
-  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_RELEASED) scene.controller.set_idle(); };
-  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_PRESSED) scene.controller.set_walk(); };
-  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_LSHIFT && e.state == SDL_PRESSED) scene.controller.set_run(); };
+  scene.models.push_back(std::move(motusManWalkF));
+  scene.models.push_back(std::move(motusManJogF));
+  scene.models.push_back(std::move(motusManRunF));
+
+  scene.models.push_back(std::move(motusManWalkB));
+  scene.models.push_back(std::move(motusManJogB));
+
+  scene.models.push_back(std::move(motusManWalkL));
+  scene.models.push_back(std::move(motusManJogL));
+  scene.models.push_back(std::move(motusManRunL));
+
+  scene.models.push_back(std::move(motusManWalkR));
+  scene.models.push_back(std::move(motusManJogR));
+  scene.models.push_back(std::move(motusManRunR));
+
 
   auto greenMaterial = make_material("grass", "sources/shaders/floor_vs.glsl", "sources/shaders/floor_ps.glsl");
 

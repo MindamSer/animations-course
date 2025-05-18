@@ -1,5 +1,6 @@
 #include "animation_controller.h"
 #include "blend_space_1d.h"
+#include "blend_space_2d.h"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
@@ -25,7 +26,11 @@ void application_update(Scene &scene)
     std::vector<WeightedAnimation> animations;
     for (auto &controller : character.controllers)
     {
-      if (BlendSpace1D *blendSpace = dynamic_cast<BlendSpace1D *>(controller.get()))
+      if (BlendSpace2D *blendSpace = dynamic_cast<BlendSpace2D *>(controller.get()))
+      {
+        blendSpace -> set_parameter(character.velocity);
+      }
+      else if (BlendSpace1D *blendSpace = dynamic_cast<BlendSpace1D *>(controller.get()))
       {
         blendSpace -> set_parameter(glm::length(character.linearVelocity));
       }

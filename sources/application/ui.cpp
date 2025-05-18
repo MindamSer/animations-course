@@ -76,6 +76,8 @@ static void show_characters(Scene &scene)
         {
 
         }
+        ImGui::SliderFloat("front velocity", &character.velocity.x, -1.f, 1.f);
+        ImGui::SliderFloat("side velocity", &character.velocity.y, -1.f, 1.f);
 
         const float INDENT = 15.0f;
         ImGui::Indent(INDENT);

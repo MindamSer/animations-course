@@ -67,6 +67,7 @@ struct Character
   std::vector<std::shared_ptr<IAnimationController>> controllers;
 
   float linearVelocity = 0.f;
+  glm::float2 velocity = {0.f, 0.f};
 
   Character() = default;
   Character(Character &&) = default;
@@ -74,31 +75,3 @@ struct Character
   Character(const Character &) = delete;
   Character &operator=(const Character &) = delete;
 };
-
-// struct ThirdPersonController
-// {
-//   Character *controlledCharacter;
-//   ModelAsset *characterModel;
-//   int cur_state = 0;
-
-//   void set_idle()
-//   {
-//     controlledCharacter->animationContext.curentAnimation = characterModel->animations[0];
-//     cur_state = 0;
-//   };
-
-//   void set_walk()
-//   {
-//     controlledCharacter->animationContext.curentAnimation = characterModel->animations[1];
-//     cur_state = 1;
-//   };
-
-//   void set_run()
-//   {
-//     if(cur_state == 1)
-//     {
-//       controlledCharacter->animationContext.curentAnimation = characterModel->animations[2];
-//       cur_state = 2;
-//     }
-//   };
-// };
