@@ -1,3 +1,6 @@
+#include "animation_controller.h"
+#include "blend_space_1d.h"
+#include "glm/ext/quaternion_geometric.hpp"
 #include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "scene.h"
@@ -19,6 +22,24 @@ void application_update(Scene &scene)
   {
     AnimationContext &animationContext = character.animationContext;
 
+    std::vector<WeightedAnimation> animations;
+    for (auto &controller : character.controllers)
+    {
+      if (BlendSpace1D *blendSpace = dynamic_cast<BlendSpace1D *>(controller.get()))
+      {
+        blendSpace -> set_parameter(glm::length(character.linearVelocity));
+      }
+    }
+    for (auto &controller : character.controllers)
+    {
+      controller->update(engine::get_delta_time());
+      controller->collect_animations(animations);
+    }
+
+    animationContext.clear_animation_layers();
+    for (const WeightedAnimation &wa : animations)
+      animationContext.add_animation(wa.animation, wa.progress, wa.weight);
+
     for (AnimationLayer &layer : animationContext.layers)
     {
       assert(layer.curentAnimation != nullptr);
@@ -32,10 +53,6 @@ void application_update(Scene &scene)
       assert(samplingJob.Validate());
       const bool success = samplingJob.Run();
       assert(success);
-
-      layer.currentProgress += engine::get_delta_time() / layer.curentAnimation->duration();
-      if (layer.currentProgress > 1.f)
-        layer.currentProgress -= 1.f;
     }
 
 

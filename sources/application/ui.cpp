@@ -60,7 +60,7 @@ static void show_characters(Scene &scene)
     static uint32_t selectedNode = -1u;
     for (size_t i = 0; i < scene.characters.size(); i++)
     {
-      const Character &character = scene.characters[i];
+      Character &character = scene.characters[i];
       ImGui::PushID(i);
       if (ImGui::Selectable(character.name.c_str(), selectedCharacter == i, ImGuiSelectableFlags_AllowDoubleClick))
       {
@@ -72,6 +72,11 @@ static void show_characters(Scene &scene)
       }
       if (selectedCharacter == i)
       {
+        if(ImGui::SliderFloat("linear velocity", &character.linearVelocity, 0.f, 3.f))
+        {
+
+        }
+
         const float INDENT = 15.0f;
         ImGui::Indent(INDENT);
         ImGui::Text("Meshes: %zu", character.meshes.size());

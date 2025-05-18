@@ -10,6 +10,7 @@
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
+#include "animation_controller.h"
 
 
 struct AnimationLayer
@@ -62,6 +63,10 @@ struct Character
   MaterialPtr material;
   SkeletonData skeleton;
   AnimationContext animationContext;
+
+  std::vector<std::shared_ptr<IAnimationController>> controllers;
+
+  float linearVelocity = 0.f;
 
   Character() = default;
   Character(Character &&) = default;

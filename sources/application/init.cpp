@@ -3,6 +3,9 @@
 #include "import/model.h"
 #include "render/mesh.h"
 #include "scene.h"
+#include <memory>
+#include "blend_space_1d.h"
+#include "single_animation.h"
 
 
 static glm::mat4 get_projective_matrix()
@@ -43,13 +46,9 @@ void application_init(Scene &scene)
 
 
   ModelAsset motusManIdle = load_model("resources/Animations/IPC/MOB1_Stand_Relaxed_Idle_IPC.fbx");
-  {
-    ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
-    ModelAsset motusManRun = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
-
-    motusManIdle.animations.push_back(motusManWalk.animations[0]);
-    motusManIdle.animations.push_back(motusManRun.animations[0]);
-  }
+  ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
+  ModelAsset motusManJog = load_model("resources/Animations/IPC/MOB1_Jog_F_Loop_IPC.fbx");
+  ModelAsset motusManRun = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
 
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
 
@@ -60,7 +59,6 @@ void application_init(Scene &scene)
   {
     AnimationContext motusContext;
     motusContext.setup(motusManIdle.skeleton.ozzSkeleton);
-    motusContext.add_animation(motusManIdle.animations[1], 0.f);
 
     Character &motusCharacter = scene.characters.emplace_back();
     motusCharacter.name = "MotusMan_v55";
@@ -69,6 +67,14 @@ void application_init(Scene &scene)
     motusCharacter.material = std::move(material);
     motusCharacter.skeleton = motusManIdle.skeleton;
     motusCharacter.animationContext = std::move(motusContext);
+    motusCharacter.controllers.push_back(std::make_shared<BlendSpace1D>(
+      std::vector<AnimationNode1D>{
+        {motusManIdle.animations[0], 0.f},
+        {motusManWalk.animations[0], 1.f},
+        {motusManJog.animations[0], 2.f},
+        {motusManRun.animations[0], 3.f}
+      }
+    ));
   }
 
 
@@ -80,7 +86,6 @@ void application_init(Scene &scene)
   {
     AnimationContext rubyContext;
     rubyContext.setup(ruby.skeleton.ozzSkeleton);
-    rubyContext.add_animation(ruby.animations[0], 0.f);
 
     Character &rubyCharacter = scene.characters.emplace_back();
     rubyCharacter.name = "Ruby";
@@ -89,9 +94,13 @@ void application_init(Scene &scene)
     rubyCharacter.material = std::move(whiteMaterial);
     rubyCharacter.skeleton = ruby.skeleton;
     rubyCharacter.animationContext = std::move(rubyContext);
+    rubyCharacter.controllers.push_back(std::make_shared<SingleAnimation>(ruby.animations[0]));
   }
 
   scene.models.push_back(std::move(motusManIdle));
+  scene.models.push_back(std::move(motusManWalk));
+  scene.models.push_back(std::move(motusManJog));
+  scene.models.push_back(std::move(motusManRun));
   scene.models.push_back(std::move(ruby));
 
 
