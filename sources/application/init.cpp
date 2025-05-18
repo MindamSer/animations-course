@@ -1,5 +1,6 @@
 #include "character.h"
 #include "import/model.h"
+#include "render/mesh.h"
 #include "scene.h"
 
 
@@ -40,9 +41,16 @@ void application_init(Scene &scene)
   engine::onKeyboardEvent += [](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_F5 && e.state == SDL_RELEASED) recompile_all_shaders(); };
 
 
-  ModelAsset motusMan = load_model("resources/MotusMan_v55/MotusMan_v55.fbx");
+  ModelAsset motusManIdle = load_model("resources/Animations/IPC/MOB1_Stand_Relaxed_Idle_IPC.fbx");
+  {
+    ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
+    ModelAsset motusManRun = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
+
+    motusManIdle.animations.push_back(motusManWalk.animations[0]);
+    motusManIdle.animations.push_back(motusManRun.animations[0]);
+  }
+
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
-  ModelAsset motusManWalk = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
 
 
   auto material = make_material("character", "sources/shaders/character_vs.glsl", "sources/shaders/character_ps.glsl");
@@ -50,15 +58,15 @@ void application_init(Scene &scene)
 
   {
     AnimationContext motusContext;
-    motusContext.setup(motusManWalk.skeleton.ozzSkeleton);
-    motusContext.curentAnimation = motusManWalk.animations[0];
+    motusContext.setup(motusManIdle.skeleton.ozzSkeleton);
+    motusContext.curentAnimation = motusManIdle.animations[0];
 
     scene.characters.emplace_back(Character{
     "MotusMan_v55",
     glm::identity<glm::mat4>(),
-    motusMan.meshes,
+    motusManIdle.meshes,
     std::move(material),
-    motusManWalk.skeleton,
+    motusManIdle.skeleton,
     std::move(motusContext)
     });
   }
@@ -84,9 +92,19 @@ void application_init(Scene &scene)
     });
   }
 
-  scene.models.push_back(std::move(motusMan));
+  scene.models.push_back(std::move(motusManIdle));
   scene.models.push_back(std::move(ruby));
-  scene.models.push_back(std::move(motusManWalk));
+
+
+  auto greenMaterial = make_material("grass", "sources/shaders/floor_vs.glsl", "sources/shaders/floor_ps.glsl");
+
+  const uint8_t greenColor[4] = {127, 255, 127, 255};
+  greenMaterial->set_property("mainTex", create_texture2d(greenColor, 1, 1, 4));
+
+  scene.staticModels.push_back(StaticModelAsset{
+    {make_plane_mesh()},
+    std::move(greenMaterial)
+  });
 
   std::fflush(stdout);
 }

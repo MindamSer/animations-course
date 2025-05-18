@@ -1,6 +1,9 @@
 
 #include "api.h"
 #include "glm/fwd.hpp"
+#include "import/model.h"
+#include "render/material.h"
+#include "render/mesh.h"
 #include "scene.h"
 #include <string>
 
@@ -52,6 +55,24 @@ void render_character(const Character &character, const mat4 &cameraProjView, ve
   }
 }
 
+void render_static_model(const StaticModelAsset &model, const mat4 &cameraProjView, vec3 cameraPosition, const DirectionLight &light)
+{
+  const Material &material = *model.material;
+  const Shader &shader = material.get_shader();
+
+  shader.use();
+  material.bind_uniforms_to_shader();
+  shader.set_mat4x4("ViewProjection", cameraProjView);
+  shader.set_vec3("CameraPosition", cameraPosition);
+  shader.set_vec3("LightDirection", glm::normalize(light.lightDirection));
+  shader.set_vec3("AmbientLight", light.ambient);
+  shader.set_vec3("SunLight", light.lightColor);
+
+
+  for (const MeshPtr &mesh : model.meshes)
+    render(mesh);
+}
+
 void application_render(Scene &scene)
 {
   glEnable(GL_DEPTH_TEST);
@@ -67,4 +88,7 @@ void application_render(Scene &scene)
 
   for (const Character &character : scene.characters)
     render_character(character, projView, glm::vec3(transform[3]), scene.light);
+
+  for (const StaticModelAsset &model : scene.staticModels)
+    render_static_model(model, projView, glm::vec3(transform[3]), scene.light);
 }

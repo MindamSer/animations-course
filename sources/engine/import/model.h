@@ -1,5 +1,6 @@
 #pragma once
 #include "render/mesh.h"
+#include "render/material.h"
 #include <vector>
 
 #include <ozz/animation/runtime/skeleton.h>
@@ -25,6 +26,12 @@ struct ModelAsset
   std::vector<MeshPtr> meshes;
   SkeletonData skeleton;
   std::vector<AnimationPtr> animations;
+};
+
+struct StaticModelAsset
+{
+  std::vector<MeshPtr> meshes;
+  MaterialPtr material;
 };
 
 ModelAsset load_model(const char *path);

@@ -13,4 +13,5 @@ struct Scene
   UserCamera userCamera;
 
   std::vector<Character> characters;
+  std::vector<StaticModelAsset> staticModels;
 };
