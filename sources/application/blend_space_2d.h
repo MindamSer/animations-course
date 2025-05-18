@@ -28,7 +28,35 @@ struct BlendSpace2D final : IAnimationController
 
   BlendSpace2D(const std::vector<AnimationNode2D> & _animations) : animations{_animations}
   {
-    // triangulation and filling std::vector<AnimationTriangle> triangulation;
+    {
+      glm::float2 minPoint = {0.f, 0.f};
+      glm::float2 maxPoint = {0.f, 0.f};
+      for (const AnimationNode2D &node : animations)
+      {
+        const glm::float2 point = node.parameter;
+
+        minPoint = {min(minPoint.x, point.x), min(minPoint.y, point.y)};
+        maxPoint = {max(minPoint.x, point.x), max(minPoint.y, point.y)};
+      }
+      minPoint -= glm::float2{1.f, 1.f};
+      maxPoint += glm::float2{1.f, 1.f};
+
+      std::vector<glm::float2> points;
+      points.reserve(animations.size() + 3);
+      for (const AnimationNode2D &node : animations)
+        points.push_back(node.parameter);
+      points.push_back(minPoint);
+      points.push_back({minPoint.x, 2 * maxPoint.y - minPoint.y});
+      points.push_back({2 * maxPoint.x - minPoint.x, minPoint.y});
+
+      triangulation.push_back({
+          animations.size(),
+          animations.size() + 1,
+          animations.size() + 2
+      });
+
+      // Bowyer–Watson algorithm implementation
+    }
 
     weights.resize(animations.size());
     set_parameter({0.f, 0.f});
