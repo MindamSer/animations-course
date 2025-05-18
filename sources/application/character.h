@@ -41,3 +41,31 @@ struct Character
   SkeletonData skeleton;
   AnimationContext animationContext;
 };
+
+struct ThirdPersonController
+{
+  Character *controlledCharacter;
+  ModelAsset *characterModel;
+  int cur_state = 0;
+
+  void set_idle()
+  {
+    controlledCharacter->animationContext.curentAnimation = characterModel->animations[0];
+    cur_state = 0;
+  };
+
+  void set_walk()
+  {
+    controlledCharacter->animationContext.curentAnimation = characterModel->animations[1];
+    cur_state = 1;
+  };
+
+  void set_run()
+  {
+    if(cur_state == 1)
+    {
+      controlledCharacter->animationContext.curentAnimation = characterModel->animations[2];
+      cur_state = 2;
+    }
+  };
+};

@@ -1,3 +1,4 @@
+#include "SDL2/SDL_events.h"
 #include "character.h"
 #include "import/model.h"
 #include "render/mesh.h"
@@ -95,6 +96,14 @@ void application_init(Scene &scene)
   scene.models.push_back(std::move(motusManIdle));
   scene.models.push_back(std::move(ruby));
 
+
+  scene.controller = {
+    &scene.characters[0],
+    &scene.models[0]
+  };
+  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_RELEASED) scene.controller.set_idle(); };
+  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_PRESSED) scene.controller.set_walk(); };
+  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_LSHIFT && e.state == SDL_PRESSED) scene.controller.set_run(); };
 
   auto greenMaterial = make_material("grass", "sources/shaders/floor_vs.glsl", "sources/shaders/floor_ps.glsl");
 
