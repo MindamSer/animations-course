@@ -1,3 +1,4 @@
+#include "ozz/animation/runtime/blending_job.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "scene.h"
 #include "character.h"
@@ -5,6 +6,7 @@
 #include "ozz/base/maths/soa_transform.h"
 #include "ozz/animation/runtime/sampling_job.h"
 #include <cassert>
+#include <cstddef>
 
 void application_update(Scene &scene)
 {
@@ -17,25 +19,48 @@ void application_update(Scene &scene)
   {
     AnimationContext &animationContext = character.animationContext;
 
-    if (animationContext.curentAnimation != nullptr)
+    for (AnimationLayer &layer : animationContext.layers)
     {
+      assert(layer.curentAnimation != nullptr);
+
       ozz::animation::SamplingJob samplingJob;
-      samplingJob.ratio = animationContext.currentProgress;
-      //assert(samplingJob.ratio >= 0.f && samplingJob.ratio <= 1.f);
-      samplingJob.animation = animationContext.curentAnimation.get();
-      samplingJob.context = animationContext.samplingCache.get();
-      samplingJob.output = ozz::make_span(animationContext.localTransforms);
+      samplingJob.ratio = layer.currentProgress;
+      samplingJob.animation = layer.curentAnimation.get();
+      samplingJob.context = layer.samplingCache.get();
+      samplingJob.output = ozz::make_span(layer.localLayerTransforms);
 
       assert(samplingJob.Validate());
       const bool success = samplingJob.Run();
       assert(success);
 
-      animationContext.currentProgress += engine::get_delta_time() / animationContext.curentAnimation->duration();
-      if (animationContext.currentProgress > 1.f) animationContext.currentProgress -= 1.f;
+      layer.currentProgress += engine::get_delta_time() / layer.curentAnimation->duration();
+      if (layer.currentProgress > 1.f)
+        layer.currentProgress -= 1.f;
+    }
+
+
+    if (!animationContext.layers.empty())
+    {
+      ozz::animation::BlendingJob blendingJob;
+      blendingJob.output = ozz::make_span(animationContext.localTransforms);
+      blendingJob.threshold = 0.01f;
+      std::vector<ozz::animation::BlendingJob::Layer> layers(animationContext.layers.size());
+      for (int i = 0; i < animationContext.layers.size(); ++i)
+      {
+        layers[i].weight = animationContext.layers[i].weight;
+        layers[i].transform = ozz::make_span(animationContext.layers[i].localLayerTransforms);
+      }
+      blendingJob.layers = ozz::make_span(layers);
+      blendingJob.rest_pose = animationContext.skeleton->joint_rest_poses();
+
+      assert(blendingJob.Validate());
+      const bool success = blendingJob.Run();
+      assert(success);
+
     }
     else
     {
-      const auto &tPose = animationContext.skeleton->joint_rest_poses();
+      auto tPose = animationContext.skeleton->joint_rest_poses();
       animationContext.localTransforms.assign(tPose.begin(), tPose.end());
     }
 

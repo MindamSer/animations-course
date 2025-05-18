@@ -15,5 +15,5 @@ struct Scene
   std::vector<Character> characters;
   std::vector<StaticModelAsset> staticModels;
 
-  ThirdPersonController controller;
+  // ThirdPersonController controller;
 };

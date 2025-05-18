@@ -11,24 +11,46 @@
 #include "ozz/base/maths/simd_math.h"
 #include "ozz/base/maths/soa_transform.h"
 
+
+struct AnimationLayer
+{
+  AnimationPtr curentAnimation;
+  std::vector<ozz::math::SoaTransform> localLayerTransforms;
+  std::unique_ptr<ozz::animation::SamplingJob::Context> samplingCache;
+  float currentProgress = 0.f;
+  float weight = 1.f;
+};
+
 struct AnimationContext
 {
   SkeletonPtr skeleton;
-  AnimationPtr curentAnimation;
   std::vector<ozz::math::SoaTransform> localTransforms;
   std::vector<ozz::math::Float4x4> worldTransforms;
-  std::unique_ptr<ozz::animation::SamplingJob::Context> samplingCache;
-  float currentProgress = 0.f;
+  std::vector<AnimationLayer> layers;
 
   void setup(const SkeletonPtr &_skeleton)
   {
     skeleton = _skeleton;
-    localTransforms.resize(skeleton->num_soa_joints());
     worldTransforms.resize(skeleton->num_joints());
-    if (!samplingCache)
-      samplingCache = std::make_unique<ozz::animation::SamplingJob::Context>(skeleton->num_joints());
+    localTransforms.resize(_skeleton->num_soa_joints());
+  }
+
+  void add_animation(const AnimationPtr &animation, float progress, float weight = 1.f)
+  {
+    AnimationLayer &layer = layers.emplace_back();
+    layer.localLayerTransforms.resize(skeleton->num_soa_joints());
+    layer.curentAnimation = animation;
+    layer.currentProgress = progress;
+    layer.weight = weight;
+    if (!layer.samplingCache)
+      layer.samplingCache = std::make_unique<ozz::animation::SamplingJob::Context>(skeleton->num_joints());
     else
-      samplingCache->Resize(skeleton->num_joints());
+      layer.samplingCache->Resize(skeleton->num_joints());
+  }
+
+  void clear_animation_layers()
+  {
+    layers.clear();
   }
 };
 
@@ -40,32 +62,38 @@ struct Character
   MaterialPtr material;
   SkeletonData skeleton;
   AnimationContext animationContext;
+
+  Character() = default;
+  Character(Character &&) = default;
+  Character &operator=(Character &&) = default;
+  Character(const Character &) = delete;
+  Character &operator=(const Character &) = delete;
 };
 
-struct ThirdPersonController
-{
-  Character *controlledCharacter;
-  ModelAsset *characterModel;
-  int cur_state = 0;
+// struct ThirdPersonController
+// {
+//   Character *controlledCharacter;
+//   ModelAsset *characterModel;
+//   int cur_state = 0;
 
-  void set_idle()
-  {
-    controlledCharacter->animationContext.curentAnimation = characterModel->animations[0];
-    cur_state = 0;
-  };
+//   void set_idle()
+//   {
+//     controlledCharacter->animationContext.curentAnimation = characterModel->animations[0];
+//     cur_state = 0;
+//   };
 
-  void set_walk()
-  {
-    controlledCharacter->animationContext.curentAnimation = characterModel->animations[1];
-    cur_state = 1;
-  };
+//   void set_walk()
+//   {
+//     controlledCharacter->animationContext.curentAnimation = characterModel->animations[1];
+//     cur_state = 1;
+//   };
 
-  void set_run()
-  {
-    if(cur_state == 1)
-    {
-      controlledCharacter->animationContext.curentAnimation = characterModel->animations[2];
-      cur_state = 2;
-    }
-  };
-};
+//   void set_run()
+//   {
+//     if(cur_state == 1)
+//     {
+//       controlledCharacter->animationContext.curentAnimation = characterModel->animations[2];
+//       cur_state = 2;
+//     }
+//   };
+// };

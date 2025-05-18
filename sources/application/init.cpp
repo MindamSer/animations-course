@@ -60,16 +60,15 @@ void application_init(Scene &scene)
   {
     AnimationContext motusContext;
     motusContext.setup(motusManIdle.skeleton.ozzSkeleton);
-    motusContext.curentAnimation = motusManIdle.animations[0];
+    motusContext.add_animation(motusManIdle.animations[1], 0.f);
 
-    scene.characters.emplace_back(Character{
-    "MotusMan_v55",
-    glm::identity<glm::mat4>(),
-    motusManIdle.meshes,
-    std::move(material),
-    motusManIdle.skeleton,
-    std::move(motusContext)
-    });
+    Character &motusCharacter = scene.characters.emplace_back();
+    motusCharacter.name = "MotusMan_v55";
+    motusCharacter.transform = glm::identity<glm::mat4>();
+    motusCharacter.meshes = motusManIdle.meshes;
+    motusCharacter.material = std::move(material);
+    motusCharacter.skeleton = motusManIdle.skeleton;
+    motusCharacter.animationContext = std::move(motusContext);
   }
 
 
@@ -81,29 +80,28 @@ void application_init(Scene &scene)
   {
     AnimationContext rubyContext;
     rubyContext.setup(ruby.skeleton.ozzSkeleton);
-    rubyContext.curentAnimation = ruby.animations[0];
+    rubyContext.add_animation(ruby.animations[0], 0.f);
 
-    scene.characters.emplace_back(Character{
-      "Ruby",
-      glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f)),
-      ruby.meshes,
-      std::move(whiteMaterial),
-      ruby.skeleton,
-      std::move(rubyContext)
-    });
+    Character &rubyCharacter = scene.characters.emplace_back();
+    rubyCharacter.name = "Ruby";
+    rubyCharacter.transform = glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.f, 0.f, 0.f));
+    rubyCharacter.meshes = ruby.meshes;
+    rubyCharacter.material = std::move(whiteMaterial);
+    rubyCharacter.skeleton = ruby.skeleton;
+    rubyCharacter.animationContext = std::move(rubyContext);
   }
 
   scene.models.push_back(std::move(motusManIdle));
   scene.models.push_back(std::move(ruby));
 
 
-  scene.controller = {
-    &scene.characters[0],
-    &scene.models[0]
-  };
-  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_RELEASED) scene.controller.set_idle(); };
-  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_PRESSED) scene.controller.set_walk(); };
-  engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_LSHIFT && e.state == SDL_PRESSED) scene.controller.set_run(); };
+  // scene.controller = {
+  //   &scene.characters[0],
+  //   &scene.models[0]
+  // };
+  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_RELEASED) scene.controller.set_idle(); };
+  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_w && e.state == SDL_PRESSED) scene.controller.set_walk(); };
+  // engine::onKeyboardEvent += [&](const SDL_KeyboardEvent &e) { if (e.keysym.sym == SDLK_LSHIFT && e.state == SDL_PRESSED) scene.controller.set_run(); };
 
   auto greenMaterial = make_material("grass", "sources/shaders/floor_vs.glsl", "sources/shaders/floor_ps.glsl");
 
