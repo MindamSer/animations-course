@@ -49,19 +49,13 @@ void application_init(Scene &scene)
   ModelAsset motusManIdle = load_model("resources/Animations/IPC/MOB1_Stand_Relaxed_Idle_IPC.fbx");
 
   ModelAsset motusManWalkF = load_model("resources/Animations/IPC/MOB1_Walk_F_Loop_IPC.fbx");
-  ModelAsset motusManJogF = load_model("resources/Animations/IPC/MOB1_Jog_F_Loop_IPC.fbx");
-  ModelAsset motusManRunF = load_model("resources/Animations/IPC/MOB1_Run_F_Loop_IPC.fbx");
-
-  ModelAsset motusManWalkB = load_model("resources/Animations/IPC/MOB1_Walk_B_Loop_IPC.fbx");
-  ModelAsset motusManJogB = load_model("resources/Animations/IPC/MOB1_Jog_B_Loop_IPC.fbx");
-
+  ModelAsset motusManWalkFL = load_model("resources/Animations/IPC/MOB1_Walk_FL_Loop_IPC.fbx");
   ModelAsset motusManWalkL = load_model("resources/Animations/IPC/MOB1_Walk_L_Loop_IPC.fbx");
-  ModelAsset motusManJogL = load_model("resources/Animations/IPC/MOB1_Jog_L_Loop_IPC.fbx");
-  ModelAsset motusManRunL = load_model("resources/Animations/IPC/MOB1_Run_L_Loop_IPC.fbx");
-
+  ModelAsset motusManWalkBL = load_model("resources/Animations/IPC/MOB1_Walk_BL_BkPd_Loop_IPC.fbx");
+  ModelAsset motusManWalkB = load_model("resources/Animations/IPC/MOB1_Walk_B_Loop_IPC.fbx");
+  ModelAsset motusManWalkBR = load_model("resources/Animations/IPC/MOB1_Walk_BR_BkPd_Loop_IPC.fbx");
   ModelAsset motusManWalkR = load_model("resources/Animations/IPC/MOB1_Walk_R_Loop_IPC.fbx");
-  ModelAsset motusManJogR = load_model("resources/Animations/IPC/MOB1_Jog_R_Loop_IPC.fbx");
-  ModelAsset motusManRunR = load_model("resources/Animations/IPC/MOB1_Run_R_Loop_IPC.fbx");
+  ModelAsset motusManWalkFR = load_model("resources/Animations/IPC/MOB1_Walk_FR_Loop_IPC.fbx");
 
   ModelAsset ruby = load_model("resources/sketchfab/ruby.fbx");
 
@@ -84,20 +78,14 @@ void application_init(Scene &scene)
     std::vector<AnimationNode2D> nodes = {
       {motusManIdle.animations[0], {0.f, 0.f}},
 
-      {motusManWalkF.animations[0], {1.f, 0.f}},
-      {motusManJogF.animations[0], {2.f, 0.f}},
-      {motusManRunF.animations[0], {3.f, 0.f}},
-
-      {motusManWalkB.animations[0], {-1.f, 0.f}},
-      {motusManJogB.animations[0], {-2.f, 0.f}},
-
-      {motusManWalkL.animations[0], {0.f, 1.f}},
-      {motusManJogL.animations[0], {0.f, 2.f}},
-      {motusManRunL.animations[0], {0.f, 3.f}},
-
-      {motusManWalkR.animations[0], {0.f, -1.f}},
-      {motusManJogR.animations[0], {0.f, -2.f}},
-      {motusManRunR.animations[0], {0.f, -3.f}}
+      {motusManWalkF .animations[0], {1.f, 0.f}},
+      {motusManWalkFL.animations[0], {1.f, 1.f}},
+      {motusManWalkL .animations[0], {0.f, 1.f}},
+      {motusManWalkBL.animations[0], {-1.f, 1.f}},
+      {motusManWalkB .animations[0], {-1.f, 0.f}},
+      {motusManWalkBR.animations[0], {-1.f, -1.f}},
+      {motusManWalkR .animations[0], {0.f, -1.f}},
+      {motusManWalkFR.animations[0], {1.f, -1.f}},
     };
     motusCharacter.controllers.push_back(std::make_shared<BlendSpace2D>(nodes));
   }
@@ -126,20 +114,14 @@ void application_init(Scene &scene)
 
   scene.models.push_back(std::move(motusManIdle));
 
-  scene.models.push_back(std::move(motusManWalkF));
-  scene.models.push_back(std::move(motusManJogF));
-  scene.models.push_back(std::move(motusManRunF));
-
-  scene.models.push_back(std::move(motusManWalkB));
-  scene.models.push_back(std::move(motusManJogB));
-
-  scene.models.push_back(std::move(motusManWalkL));
-  scene.models.push_back(std::move(motusManJogL));
-  scene.models.push_back(std::move(motusManRunL));
-
-  scene.models.push_back(std::move(motusManWalkR));
-  scene.models.push_back(std::move(motusManJogR));
-  scene.models.push_back(std::move(motusManRunR));
+  scene.models.push_back(std::move(motusManWalkF ));
+  scene.models.push_back(std::move(motusManWalkFL));
+  scene.models.push_back(std::move(motusManWalkL ));
+  scene.models.push_back(std::move(motusManWalkBL));
+  scene.models.push_back(std::move(motusManWalkB ));
+  scene.models.push_back(std::move(motusManWalkBR));
+  scene.models.push_back(std::move(motusManWalkR ));
+  scene.models.push_back(std::move(motusManWalkFR));
 
 
   auto greenMaterial = make_material("grass", "sources/shaders/floor_vs.glsl", "sources/shaders/floor_ps.glsl");
